@@ -13,9 +13,10 @@ var Link = db.Model.extend({
   },
   initialize: function() {
     this.on('creating', function(model, attrs, options) {
-      var shasum = crypto.createHash('sha1');
-      shasum.update(model.get('url'));
-      model.set('code', shasum.digest('hex').slice(0, 5));
+      var shasum = crypto.createHash('sha1'); // just creating a unique hash for each site so you don't create duplicate entries
+      // actually line 16 is creating an object that will create the hash.
+      shasum.update(model.get('url')); // using the hash obj from creatHash plus the url to creata a hash????
+      model.set('code', shasum.digest('hex').slice(0, 5)); //
     });
   }
 });
