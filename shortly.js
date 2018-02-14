@@ -3,6 +3,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var bcrypt = require('bcrypt-nodejs');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -104,7 +105,7 @@ app.post('/login', function(req, res) {
           if (match) {
             util.createSession(req, res, user); // need to add createSession to utility
           } else {
-            res.redirect('/login');
+            res.redirect('/');
           }
         });
       }
@@ -130,7 +131,7 @@ app.post('/signup', function(req, res) {
         });
       } else {
         console.log('This account already exists!');
-        res.redirect('/signup');
+        res.redirect('/');
       }
     }); // create a user
 });
