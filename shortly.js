@@ -23,32 +23,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 app.use(session({secret: 'secret', resave: false, saveUninitialized: true}));
 
-app.get('/',
-  function(req, res) {
-    if (req.session.isLoggedIn === true) { // user is logged in
-      res.render('index');
-    } else {
-      res.render('login');//redirect to /login
-    }
-  });
-
-app.get('/signup', function(req, res) {
-  res.render('signup');
-});
-
-app.get('/create',
+app.get('/', util.checkUser,
   function(req, res) {
     res.render('index');
   });
 
-app.get('/links',
+app.get('/create', util.checkUser,
+  function(req, res) {
+    res.render('index');
+  });
+
+app.get('/links', util.checkUser,
   function(req, res) {
     Links.reset().fetch().then(function(links) {
       res.status(200).send(links.models);
     });
   });
 
-app.post('/links',
+app.post('/links', util.checkUser,
   function(req, res) {
     var uri = req.body.url;
 
@@ -85,18 +77,36 @@ app.post('/links',
 /************************************************************/
 app.get('/login', function(req, res) {
   res.render('login');
+  // res.send();
+});
+
+app.get('/logout', function(req, res) {
+  req.session.destroy(function() {
+    res.redirect('/login');
+  });
+});
+
+app.get('/signup', function(req, res) {
+  res.render('signup');
 });
 
 app.post('/login', function(req, res) {
-  req.session.pw = req.body.password;// send login info and redirect to 'index'
-  req.session.user = req.body.username;
-  Users.query('where', 'username', '=', 'req.body.username').fetchOne()
-    .then(function(user) {
+  var password = req.body.password;// send login info and redirect to 'index'
+  var username = req.body.username;
+
+  new User ({username: username})
+    .fetch()
+    .then(function (user) {
       if (!user) {
-        console.log(user);
         res.redirect('/login');
       } else {
-        res.redirect('/');
+        bcrypt.compare(password, user.get('password'), function (err, match) {
+          if (match) {
+            util.createSession(req, res, user); // need to add createSession to utility
+          } else {
+            res.redirect('/login');
+          }
+        });
       }
     });
   // modify the session
@@ -104,19 +114,24 @@ app.post('/login', function(req, res) {
 });
 
 app.post('/signup', function(req, res) {
-  req.session.pw = req.body.password;
-  req.session.user = req.body.username;
-  Users.create({
-    username: req.body.username,
-    password: req.body.password
-  }) // WHATS NEXT??
-    .then(function (user) {
-      console.log(user);
-      req.session.isLoggedIn = true;
-      res.redirect('/');
-    })
-    .catch(function (err) {
-      res.status(500).json({error: true, data: {message: err.message}});
+  var password = req.body.password;
+  var username = req.body.username;
+  new User({username: username})
+    .fetch()
+    .then(function(user) {
+      if (!user) {
+        bcrypt.hash(password, null, null, function(err, hash) {
+          Users.create({
+            username: username,
+            password: hash
+          }).then(function(user) {
+            util.createSession(req, res, user);
+          });
+        });
+      } else {
+        console.log('This account already exists!');
+        res.redirect('/signup');
+      }
     }); // create a user
 });
 // creating a user

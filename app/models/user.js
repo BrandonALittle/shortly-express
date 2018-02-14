@@ -6,14 +6,15 @@ var Promise = require('bluebird');
 
 var User = db.Model.extend({
   tableName: 'users',
+  hasTimeStamps: true
   // the following code comes from https://www.npmjs.com/package/bookshelf
-  clicks: function() {
-    return this.hasMany(clicks);
-  },
+  // clicks: function() {
+  //   return this.hasMany(clicks);
+  // },
 
-  initialize: function() {
+  // initialize: function() {
 
-  }
+  // }
 
 
 

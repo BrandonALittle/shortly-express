@@ -44,10 +44,11 @@ db.knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('users', function(user) {
       user.increments('id').primary();
-      user.string('username', 20);
+      user.string('username', 20).unique();
       user.string('password', 20);
-      //user.string('salt', 22); //length??
-      //user.string('hashKey'); // PW + S Hash ?? length
+      user.timestamps();
+      //user.string('salt', 22);
+      //user.string('hashKey');
     }).then(function (table) {
       console.log('Created Table', table);
     });
