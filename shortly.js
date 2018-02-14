@@ -41,7 +41,7 @@ app.get('/links', util.checkUser,
     });
   });
 
-app.post('/links', util.checkUser,
+app.post('/links',
   function(req, res) {
     var uri = req.body.url;
 
