@@ -45,8 +45,11 @@ db.knex.schema.hasTable('users').then(function(exists) {
     db.knex.schema.createTable('users', function(user) {
       user.increments('id').primary();
       user.string('username', 20);
-      user.string('salt', 22); //length??
-      user.string('hashKey'); // PW + S Hash ?? length
+      user.string('password', 20);
+      //user.string('salt', 22); //length??
+      //user.string('hashKey'); // PW + S Hash ?? length
+    }).then(function (table) {
+      console.log('Created Table', table);
     });
   }
 });

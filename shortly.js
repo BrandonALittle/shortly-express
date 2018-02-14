@@ -21,16 +21,20 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-
+app.use(session({secret: 'secret', resave: false, saveUninitialized: true}));
 
 app.get('/',
   function(req, res) {
-    if (true) { // user is logged in
+    if (req.session.isLoggedIn === true) { // user is logged in
       res.render('index');
     } else {
-      res.render();//redirect to /login
+      res.render('login');//redirect to /login
     }
   });
+
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
 
 app.get('/create',
   function(req, res) {
@@ -79,7 +83,42 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.get('/login', function(req, res) {
+  res.render('login');
+});
 
+app.post('/login', function(req, res) {
+  req.session.pw = req.body.password;// send login info and redirect to 'index'
+  req.session.user = req.body.username;
+  Users.query('where', 'username', '=', 'req.body.username').fetchOne()
+    .then(function(user) {
+      if (!user) {
+        console.log(user);
+        res.redirect('/login');
+      } else {
+        res.redirect('/');
+      }
+    });
+  // modify the session
+  // render linkviews
+});
+
+app.post('/signup', function(req, res) {
+  req.session.pw = req.body.password;
+  req.session.user = req.body.username;
+  Users.create({
+    username: req.body.username,
+    password: req.body.password
+  }) // WHATS NEXT??
+    .then(function (user) {
+      console.log(user);
+      req.session.isLoggedIn = true;
+      res.redirect('/');
+    })
+    .catch(function (err) {
+      res.status(500).json({error: true, data: {message: err.message}});
+    }); // create a user
+});
 // creating a user
 // logging in
 // creating session & token
